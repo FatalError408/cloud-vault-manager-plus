@@ -28,41 +28,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const loadGoogleAPI = () => {
+      console.log("Loading Google API script...");
       const script = document.createElement('script');
       script.src = 'https://accounts.google.com/gsi/client';
       script.async = true;
       script.defer = true;
-      script.onload = initializeGoogleAuth;
+      script.onload = () => {
+        console.log("Google API script loaded successfully");
+        initializeGoogleAuth();
+      };
+      script.onerror = () => {
+        console.error("Failed to load Google API script");
+        setIsLoading(false);
+      };
       document.body.appendChild(script);
     };
 
     const initializeGoogleAuth = () => {
+      console.log("Initializing Google Auth...");
       if (!window.google) {
         console.error("Google API failed to load");
         setIsLoading(false);
         return;
       }
 
-      window.google.accounts.id.initialize({
-        client_id: '212192605206-hgfped85t9rtu2ek0g731utottvedjt4.apps.googleusercontent.com',
-        callback: handleGoogleCallback,
-        auto_select: false
-      });
-      setGapiLoaded(true);
-      
-      // Check if user is already logged in
-      const savedUser = localStorage.getItem("cloud-vault-user");
-      if (savedUser) {
-        try {
-          const parsedUser = JSON.parse(savedUser);
-          setUser(parsedUser);
-        } catch (e) {
-          console.error("Failed to parse user data", e);
-          localStorage.removeItem("cloud-vault-user");
+      try {
+        window.google.accounts.id.initialize({
+          client_id: '212192605206-hgfped85t9rtu2ek0g731utottvedjt4.apps.googleusercontent.com',
+          callback: handleGoogleCallback,
+          auto_select: false,
+          cancel_on_tap_outside: true
+        });
+        console.log("Google Auth initialized successfully");
+        setGapiLoaded(true);
+        
+        // Check if user is already logged in
+        const savedUser = localStorage.getItem("cloud-vault-user");
+        if (savedUser) {
+          try {
+            const parsedUser = JSON.parse(savedUser);
+            setUser(parsedUser);
+            console.log("User restored from localStorage", parsedUser);
+          } catch (e) {
+            console.error("Failed to parse user data", e);
+            localStorage.removeItem("cloud-vault-user");
+          }
         }
+        
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error initializing Google Auth:", error);
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
 
     checkGoogleLibrary();
@@ -70,6 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Handle Google callback
   const handleGoogleCallback = (response: CredentialResponse) => {
+    console.log("Google sign-in callback received", response);
     try {
       // Decode JWT token
       const base64Url = response.credential.split('.')[1];
@@ -79,6 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }).join(''));
 
       const payload = JSON.parse(jsonPayload);
+      console.log("Decoded token payload:", payload);
       
       const googleUser: User = {
         id: payload.sub,
@@ -108,6 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Google Sign-In
   const login = async (): Promise<void> => {
+    console.log("Login requested, gapi loaded:", gapiLoaded);
     if (!gapiLoaded || !window.google) {
       toast({
         title: "Google API not loaded",
@@ -120,7 +140,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setIsLoading(true);
       // Display Google sign-in popup
-      window.google.accounts.id.prompt();
+      console.log("Prompting Google sign-in...");
+      window.google.accounts.id.prompt((notification) => {
+        console.log("Google prompt notification:", notification);
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          console.log("Google sign-in prompt was not displayed or skipped");
+          // Force the Google One Tap prompt to show by rendering a button
+          const googleSignInButton = document.createElement('div');
+          googleSignInButton.id = 'g_id_onload';
+          document.body.appendChild(googleSignInButton);
+          
+          window.google?.accounts.id.renderButton(googleSignInButton, {
+            type: 'standard',
+            theme: 'outline',
+            size: 'large',
+            text: 'signin_with',
+            shape: 'rectangular',
+          });
+          
+          // Trigger click on the button
+          setTimeout(() => {
+            const signInButton = document.querySelector('[id^="gsi_"]');
+            if (signInButton) {
+              (signInButton as HTMLElement).click();
+            } else {
+              console.error("Could not find Google sign-in button to click");
+              setIsLoading(false);
+            }
+          }, 100);
+        }
+      });
     } catch (error) {
       console.error("Login failed", error);
       toast({

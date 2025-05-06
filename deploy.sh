@@ -16,8 +16,8 @@ git init
 git add .
 git commit -m "Deploy to GitHub Pages"
 
-# Force push to the gh-pages branch (replace with your actual GitHub repository)
-git push -f https://github.com/your-username/cloud-vault-manager.git master:gh-pages
+# Force push to the gh-pages branch - REPLACE these with your actual GitHub username and repository name
+git push -f https://github.com/your-username/cloud-vault-manager.git main:gh-pages
 
 cd ..
 echo "Deployed to GitHub Pages!"
