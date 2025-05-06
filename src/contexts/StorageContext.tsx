@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { storageService, cloudServices as defaultServices, defaultCategories } from "@/lib/storage-service";
 import { CloudService, FileCategory, CloudFile } from "@/lib/types";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface StorageContextType {
   cloudServices: CloudService[];
@@ -27,31 +28,35 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [availableStorage, setAvailableStorage] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Initialize storage data
   useEffect(() => {
-    // Load data from localStorage if available
-    const savedServices = localStorage.getItem("cloud-vault-services");
-    const savedCategories = localStorage.getItem("cloud-vault-categories");
+    // Get data from storage service
+    setCloudServices(storageService.getCloudServices());
+    setCategories(storageService.getCategories());
     
-    if (savedServices) {
-      try {
-        setCloudServices(JSON.parse(savedServices));
-      } catch (e) {
-        console.error("Failed to parse cloud services", e);
-      }
-    }
-    
-    if (savedCategories) {
-      try {
-        setCategories(JSON.parse(savedCategories));
-      } catch (e) {
-        console.error("Failed to parse categories", e);
-      }
-    }
+    const storageInfo = storageService.getTotalStorageInfo();
+    setTotalStorage(storageInfo.total);
+    setUsedStorage(storageInfo.used);
+    setAvailableStorage(storageInfo.available);
     
     setIsLoading(false);
   }, []);
+
+  // Update whenever user changes (login/logout)
+  useEffect(() => {
+    if (user) {
+      // If user logs in, refresh data
+      setCloudServices(storageService.getCloudServices());
+      setCategories(storageService.getCategories());
+      
+      const storageInfo = storageService.getTotalStorageInfo();
+      setTotalStorage(storageInfo.total);
+      setUsedStorage(storageInfo.used);
+      setAvailableStorage(storageInfo.available);
+    }
+  }, [user]);
 
   // Update storage info whenever services change
   useEffect(() => {
@@ -59,37 +64,34 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setTotalStorage(storageInfo.total);
     setUsedStorage(storageInfo.used);
     setAvailableStorage(storageInfo.available);
-    
-    // Save to localStorage
-    localStorage.setItem("cloud-vault-services", JSON.stringify(cloudServices));
   }, [cloudServices]);
 
-  // Save categories whenever they change
-  useEffect(() => {
-    localStorage.setItem("cloud-vault-categories", JSON.stringify(categories));
-  }, [categories]);
-
   const linkService = (serviceId: string) => {
-    const updatedServices = cloudServices.map(service => 
-      service.id === serviceId ? { ...service, isLinked: true } : service
-    );
-    setCloudServices(updatedServices);
+    setIsLoading(true);
     
-    toast({
-      title: "Service Linked",
-      description: `Successfully connected to ${updatedServices.find(s => s.id === serviceId)?.name}`,
-    });
+    // Simulate API connection to the actual service
+    setTimeout(() => {
+      storageService.linkService(serviceId);
+      
+      // Update state with service data
+      setCloudServices(storageService.getCloudServices());
+      
+      toast({
+        title: "Service Linked",
+        description: `Successfully connected to ${cloudServices.find(s => s.id === serviceId)?.name}`,
+      });
+      
+      setIsLoading(false);
+    }, 1500);
   };
 
   const unlinkService = (serviceId: string) => {
-    const updatedServices = cloudServices.map(service => 
-      service.id === serviceId ? { ...service, isLinked: false } : service
-    );
-    setCloudServices(updatedServices);
+    storageService.unlinkService(serviceId);
+    setCloudServices(storageService.getCloudServices());
     
     toast({
       title: "Service Unlinked",
-      description: `Disconnected from ${updatedServices.find(s => s.id === serviceId)?.name}`,
+      description: `Disconnected from ${cloudServices.find(s => s.id === serviceId)?.name}`,
     });
   };
 
@@ -108,59 +110,29 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
           return;
         }
         
-        // Find or create category
-        let categoryIndex = categories.findIndex(c => c.id === categoryId);
-        let targetCategory: FileCategory;
-        
-        if (categoryIndex === -1) {
-          // Create new category
-          targetCategory = {
-            id: categoryId.toLowerCase().replace(/\s+/g, '-'),
-            name: categoryId,
-            files: []
-          };
-          setCategories(prev => [...prev, targetCategory]);
-        } else {
-          targetCategory = categories[categoryIndex];
-        }
-        
-        // Select a random linked service
-        const selectedService = linkedServices[Math.floor(Math.random() * linkedServices.length)];
-        
-        // Create the new file
-        const newFile: CloudFile = {
-          id: `file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          category: targetCategory.id,
-          lastModified: new Date(file.lastModified),
-          service: selectedService.id
-        };
-        
-        // Add file to category
-        setCategories(prev => 
-          prev.map(cat => cat.id === targetCategory.id 
-            ? { ...cat, files: [...cat.files, newFile] } 
-            : cat
-          )
-        );
-        
-        // Update used storage for the service
-        const sizeInGB = file.size / (1024 * 1024 * 1024);
-        setCloudServices(prev => 
-          prev.map(service => service.id === selectedService.id
-            ? { ...service, usedStorage: service.usedStorage + sizeInGB }
-            : service
-          )
-        );
+        // Simulate file upload with progress
+        const uploadStartTime = Date.now();
+        const uploadDuration = Math.min(file.size / 100000, 3000); // Simulate larger files taking longer
         
         toast({
-          title: "File Uploaded",
-          description: `${file.name} uploaded successfully to ${selectedService.name}`,
+          title: "Uploading File",
+          description: `${file.name} upload started...`,
         });
-        
-        resolve();
+
+        setTimeout(() => {
+          storageService.addFile(file, categoryId);
+          
+          // Update state with new file data
+          setCategories(storageService.getCategories());
+          setCloudServices(storageService.getCloudServices());
+          
+          toast({
+            title: "File Uploaded",
+            description: `${file.name} uploaded successfully to ${linkedServices[0].name}`,
+          });
+          
+          resolve();
+        }, uploadDuration);
       } catch (error) {
         console.error("Upload failed", error);
         toast({
@@ -175,37 +147,20 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const deleteFile = (fileId: string, categoryId: string) => {
     try {
-      // Find the category and file
-      const categoryIndex = categories.findIndex(c => c.id === categoryId);
-      if (categoryIndex === -1) return;
+      // Find the category and file for toast notification
+      const category = categories.find(c => c.id === categoryId);
+      const file = category?.files.find(f => f.id === fileId);
+      const fileName = file?.name || "File";
       
-      const fileIndex = categories[categoryIndex].files.findIndex(f => f.id === fileId);
-      if (fileIndex === -1) return;
+      storageService.removeFile(fileId, categoryId);
       
-      const file = categories[categoryIndex].files[fileIndex];
-      
-      // Update service used storage
-      const serviceId = file.service;
-      const sizeInGB = file.size / (1024 * 1024 * 1024);
-      
-      setCloudServices(prev => 
-        prev.map(service => service.id === serviceId
-          ? { ...service, usedStorage: Math.max(0, service.usedStorage - sizeInGB) }
-          : service
-        )
-      );
-      
-      // Remove file from category
-      setCategories(prev => 
-        prev.map(cat => cat.id === categoryId
-          ? { ...cat, files: cat.files.filter(f => f.id !== fileId) }
-          : cat
-        )
-      );
+      // Update state with new data
+      setCategories(storageService.getCategories());
+      setCloudServices(storageService.getCloudServices());
       
       toast({
         title: "File Deleted",
-        description: `${file.name} has been deleted`,
+        description: `${fileName} has been deleted`,
       });
     } catch (error) {
       console.error("Delete failed", error);

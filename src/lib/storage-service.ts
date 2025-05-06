@@ -82,7 +82,13 @@ class StorageService {
   linkService(serviceId: string): void {
     const serviceIndex = this.services.findIndex(s => s.id === serviceId);
     if (serviceIndex !== -1) {
-      this.services[serviceIndex].isLinked = true;
+      // For demonstration, we simulate successful API connection with a delay
+      setTimeout(() => {
+        this.services[serviceIndex].isLinked = true;
+        
+        // Save to local storage
+        this.saveToLocalStorage();
+      }, 500);
     }
   }
 
@@ -91,6 +97,37 @@ class StorageService {
     const serviceIndex = this.services.findIndex(s => s.id === serviceId);
     if (serviceIndex !== -1) {
       this.services[serviceIndex].isLinked = false;
+      
+      // Save to local storage
+      this.saveToLocalStorage();
+    }
+  }
+  
+  // Save service and category data to localStorage
+  saveToLocalStorage(): void {
+    localStorage.setItem("cloud-vault-services", JSON.stringify(this.services));
+    localStorage.setItem("cloud-vault-categories", JSON.stringify(this.categories));
+  }
+  
+  // Load service and category data from localStorage
+  loadFromLocalStorage(): void {
+    const savedServices = localStorage.getItem("cloud-vault-services");
+    const savedCategories = localStorage.getItem("cloud-vault-categories");
+    
+    if (savedServices) {
+      try {
+        this.services = JSON.parse(savedServices);
+      } catch (e) {
+        console.error("Failed to parse cloud services", e);
+      }
+    }
+    
+    if (savedCategories) {
+      try {
+        this.categories = JSON.parse(savedCategories);
+      } catch (e) {
+        console.error("Failed to parse categories", e);
+      }
     }
   }
 
@@ -153,6 +190,9 @@ class StorageService {
       // Convert bytes to GB and add to used storage
       const sizeInGB = file.size / (1024 * 1024 * 1024);
       this.services[serviceIndex].usedStorage += sizeInGB;
+      
+      // Save to local storage after changes
+      this.saveToLocalStorage();
     }
   }
 
@@ -174,9 +214,18 @@ class StorageService {
         
         // Remove file
         this.categories[categoryIndex].files.splice(fileIndex, 1);
+        
+        // Save to local storage after changes
+        this.saveToLocalStorage();
       }
     }
+  }
+  
+  // Initialize service - load any saved data
+  initialize(): void {
+    this.loadFromLocalStorage();
   }
 }
 
 export const storageService = new StorageService();
+storageService.initialize();
