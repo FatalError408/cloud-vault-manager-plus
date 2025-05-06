@@ -1,13 +1,47 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from 'react';
+import { Header } from "@/components/Header";
+import { StorageSidebar } from "@/components/StorageSidebar";
+import { FileUploader } from "@/components/FileUploader";
+import { FileExplorer } from "@/components/FileExplorer";
+import { IntroSection } from "@/components/IntroSection";
+import { useAuth } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { StorageProvider } from "@/contexts/StorageContext";
+
+const DashboardLayout = () => {
+  const { user } = useAuth();
+  
+  if (!user) {
+    return (
+      <div className="bg-gray-50 min-h-screen">
+        <Header />
+        <IntroSection />
+      </div>
+    );
+  }
+  
+  return (
+    <div className="flex flex-col h-screen bg-gray-50">
+      <Header />
+      <div className="flex-1 flex overflow-hidden">
+        <StorageSidebar />
+        <main className="flex-1 overflow-y-auto p-4">
+          <FileUploader />
+          <FileExplorer />
+        </main>
+      </div>
+    </div>
+  );
+};
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <AuthProvider>
+      <StorageProvider>
+        <DashboardLayout />
+      </StorageProvider>
+    </AuthProvider>
   );
 };
 
