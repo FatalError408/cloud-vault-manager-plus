@@ -111,9 +111,9 @@ class StorageService {
 
   // Add a file to a category
   addFile(file: File, category: string): void {
-    const categoryIndex = this.categories.findIndex(c => c.id === category);
+    let targetCategoryIndex = this.categories.findIndex(c => c.id === category);
     
-    if (categoryIndex === -1) {
+    if (targetCategoryIndex === -1) {
       // Create new category if it doesn't exist
       const newCategory: FileCategory = {
         id: category.toLowerCase().replace(/\s+/g, '-'),
@@ -121,7 +121,7 @@ class StorageService {
         files: []
       };
       this.categories.push(newCategory);
-      categoryIndex = this.categories.length - 1;
+      targetCategoryIndex = this.categories.length - 1;
     }
 
     // Randomly select a linked service to "store" the file
@@ -140,12 +140,12 @@ class StorageService {
       name: file.name,
       size: file.size,
       type: file.type,
-      category: this.categories[categoryIndex].id,
+      category: this.categories[targetCategoryIndex].id,
       lastModified: new Date(file.lastModified),
       service: selectedService.id
     };
 
-    this.categories[categoryIndex].files.push(newFile);
+    this.categories[targetCategoryIndex].files.push(newFile);
     
     // Update used storage for the service
     const serviceIndex = this.services.findIndex(s => s.id === selectedService.id);
