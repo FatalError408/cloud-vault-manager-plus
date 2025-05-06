@@ -19,6 +19,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Load Google API
   useEffect(() => {
+    const checkGoogleLibrary = () => {
+      if (window.google && window.google.accounts) {
+        initializeGoogleAuth();
+      } else {
+        loadGoogleAPI();
+      }
+    };
+
     const loadGoogleAPI = () => {
       const script = document.createElement('script');
       script.src = 'https://accounts.google.com/gsi/client';
@@ -29,8 +37,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const initializeGoogleAuth = () => {
+      if (!window.google) {
+        console.error("Google API failed to load");
+        setIsLoading(false);
+        return;
+      }
+
       window.google.accounts.id.initialize({
-        client_id: '766367350846-5nnq2vui2rm4ft827v5ou7i5224va0cl.apps.googleusercontent.com',
+        client_id: '212192605206-hgfped85t9rtu2ek0g731utottvedjt4.apps.googleusercontent.com',
         callback: handleGoogleCallback,
         auto_select: false
       });
@@ -51,11 +65,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
     };
 
-    loadGoogleAPI();
+    checkGoogleLibrary();
   }, []);
 
   // Handle Google callback
-  const handleGoogleCallback = (response: any) => {
+  const handleGoogleCallback = (response: CredentialResponse) => {
     try {
       // Decode JWT token
       const base64Url = response.credential.split('.')[1];
@@ -94,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Google Sign-In
   const login = async (): Promise<void> => {
-    if (!gapiLoaded) {
+    if (!gapiLoaded || !window.google) {
       toast({
         title: "Google API not loaded",
         description: "Please try again in a moment",
