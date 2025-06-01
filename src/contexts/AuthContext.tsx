@@ -139,35 +139,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     try {
       setIsLoading(true);
-      // Display Google sign-in popup
       console.log("Prompting Google sign-in...");
+      
+      // Try to prompt first
       window.google.accounts.id.prompt((notification) => {
         console.log("Google prompt notification:", notification);
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          console.log("Google sign-in prompt was not displayed or skipped");
-          // Force the Google One Tap prompt to show by rendering a button
-          const googleSignInButton = document.createElement('div');
-          googleSignInButton.id = 'g_id_onload';
-          document.body.appendChild(googleSignInButton);
+        
+        // Fixed: Changed from function calls to property access
+        if (notification.isNotDisplayed || notification.isSkippedMoment) {
+          console.log("Google sign-in prompt was not displayed or skipped, rendering button...");
           
-          window.google?.accounts.id.renderButton(googleSignInButton, {
+          // Create a temporary container for the Google button
+          const buttonContainer = document.createElement('div');
+          buttonContainer.style.position = 'fixed';
+          buttonContainer.style.top = '50%';
+          buttonContainer.style.left = '50%';
+          buttonContainer.style.transform = 'translate(-50%, -50%)';
+          buttonContainer.style.zIndex = '9999';
+          buttonContainer.style.backgroundColor = 'white';
+          buttonContainer.style.padding = '20px';
+          buttonContainer.style.borderRadius = '8px';
+          buttonContainer.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+          document.body.appendChild(buttonContainer);
+          
+          // Add close button
+          const closeButton = document.createElement('button');
+          closeButton.textContent = '×';
+          closeButton.style.position = 'absolute';
+          closeButton.style.top = '5px';
+          closeButton.style.right = '10px';
+          closeButton.style.border = 'none';
+          closeButton.style.background = 'none';
+          closeButton.style.fontSize = '20px';
+          closeButton.style.cursor = 'pointer';
+          closeButton.onclick = () => {
+            document.body.removeChild(buttonContainer);
+            setIsLoading(false);
+          };
+          buttonContainer.appendChild(closeButton);
+          
+          // Render Google sign-in button
+          window.google?.accounts.id.renderButton(buttonContainer, {
             type: 'standard',
             theme: 'outline',
             size: 'large',
             text: 'signin_with',
             shape: 'rectangular',
           });
-          
-          // Trigger click on the button
-          setTimeout(() => {
-            const signInButton = document.querySelector('[id^="gsi_"]');
-            if (signInButton) {
-              (signInButton as HTMLElement).click();
-            } else {
-              console.error("Could not find Google sign-in button to click");
-              setIsLoading(false);
-            }
-          }, 100);
+        } else {
+          console.log("Google sign-in prompt displayed successfully");
         }
       });
     } catch (error) {
