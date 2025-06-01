@@ -42,7 +42,11 @@ fi
 # Create necessary files for GitHub Pages
 echo "📄 Preparing files for GitHub Pages..."
 touch dist/.nojekyll
-echo "$REPO_NAME" > dist/CNAME 2>/dev/null || true
+
+# Copy 404.html if it exists
+if [ -f "404.html" ]; then
+  cp 404.html dist/
+fi
 
 # Initialize git in the dist folder
 echo "🌿 Initializing git repository in the dist folder..."
