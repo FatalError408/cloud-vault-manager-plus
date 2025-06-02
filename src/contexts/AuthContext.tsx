@@ -39,6 +39,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       script.onerror = () => {
         console.error("Failed to load Google API script");
+        toast({
+          title: "Authentication Error",
+          description: "Failed to load Google authentication. Please refresh the page.",
+          variant: "destructive"
+        });
         setIsLoading(false);
       };
       document.body.appendChild(script);
@@ -57,7 +62,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           client_id: '212192605206-hgfped85t9rtu2ek0g731utottvedjt4.apps.googleusercontent.com',
           callback: handleGoogleCallback,
           auto_select: false,
-          cancel_on_tap_outside: true
+          cancel_on_tap_outside: true,
+          ux_mode: 'popup'
         });
         console.log("Google Auth initialized successfully");
         setGapiLoaded(true);
@@ -69,6 +75,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const parsedUser = JSON.parse(savedUser);
             setUser(parsedUser);
             console.log("User restored from localStorage", parsedUser);
+            toast({
+              title: "Welcome back!",
+              description: `Signed in as ${parsedUser.name}`,
+            });
           } catch (e) {
             console.error("Failed to parse user data", e);
             localStorage.removeItem("cloud-vault-user");
@@ -78,6 +88,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false);
       } catch (error) {
         console.error("Error initializing Google Auth:", error);
+        toast({
+          title: "Authentication Setup Failed", 
+          description: "Please refresh the page to try again.",
+          variant: "destructive"
+        });
         setIsLoading(false);
       }
     };
@@ -110,14 +125,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(googleUser);
       localStorage.setItem("cloud-vault-user", JSON.stringify(googleUser));
       toast({
-        title: "Sign in successful",
-        description: `Welcome, ${googleUser.name}!`
+        title: "Welcome to Cloud Vault Manager!",
+        description: `Successfully signed in as ${googleUser.name}`,
       });
     } catch (error) {
       console.error("Google sign-in error:", error);
       toast({
         title: "Sign in failed",
-        description: "Could not sign in with Google",
+        description: "Could not process your Google sign-in. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -130,8 +145,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log("Login requested, gapi loaded:", gapiLoaded);
     if (!gapiLoaded || !window.google) {
       toast({
-        title: "Google API not loaded",
-        description: "Please try again in a moment",
+        title: "Please wait",
+        description: "Google authentication is still loading...",
         variant: "destructive"
       });
       return;
@@ -146,8 +161,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error("Login failed", error);
       toast({
-        title: "Login failed",
-        description: "An error occurred during sign in",
+        title: "Sign in failed",
+        description: "Please try again or refresh the page",
         variant: "destructive"
       });
       setIsLoading(false);
@@ -160,9 +175,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Clear user data
       setUser(null);
       localStorage.removeItem("cloud-vault-user");
+      
+      // Optionally sign out from Google
+      if (window.google && window.google.accounts) {
+        window.google.accounts.id.disableAutoSelect();
+      }
+      
       toast({
-        title: "Signed out",
-        description: "You have been successfully signed out"
+        title: "Signed out successfully",
+        description: "You have been logged out of Cloud Vault Manager"
       });
     } catch (error) {
       console.error("Logout failed", error);
