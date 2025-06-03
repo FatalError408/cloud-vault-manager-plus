@@ -15,7 +15,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  base: "/cloud-vault-manager-plus/",
+  base: "/CloudVaultManager/",
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
