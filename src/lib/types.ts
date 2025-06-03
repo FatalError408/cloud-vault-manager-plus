@@ -44,3 +44,35 @@ export interface FileItem {
   path: string;
   thumbnailUrl?: string;
 }
+
+export interface CloudService {
+  id: string;
+  name: string;
+  type: 'google-drive' | 'dropbox' | 'onedrive' | 'box';
+  isLinked: boolean;
+  usedStorage: number;
+  totalStorage: number;
+  lastSync?: string;
+  color: string;
+  icon: 'cloud' | 'archive' | 'database' | 'hard-drive';
+  signUpUrl: string;
+}
+
+export interface CloudFile {
+  id: string;
+  name: string;
+  type: 'file' | 'folder';
+  size: number;
+  modifiedDate: string;
+  serviceId: string;
+  path: string;
+  thumbnailUrl?: string;
+}
+
+export interface FileCategory {
+  id: string;
+  name: string;
+  files: CloudFile[];
+  totalSize: number;
+  color: string;
+}
