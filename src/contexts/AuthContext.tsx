@@ -68,8 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           callback: handleGoogleCallback,
           auto_select: false,
           cancel_on_tap_outside: true,
-          ux_mode: 'popup',
-          use_fedcm_for_prompt: false
+          ux_mode: 'popup'
         });
         console.log("Google Auth initialized successfully");
         setGapiLoaded(true);
@@ -215,7 +214,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             theme: 'outline',
             size: 'large',
             type: 'standard',
-            width: 250
+            width: '250'
           });
           
           // Trigger click after a short delay
@@ -317,3 +316,4 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+
