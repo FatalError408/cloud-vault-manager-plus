@@ -1,5 +1,5 @@
 
-import { useStorage } from "@/contexts/SupabaseStorageContext";
+import { useStorage } from "@/contexts/StorageContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,7 @@ export function DashboardStats() {
   } = useStorage();
 
   const connectedServices = cloudServices.filter(service => service.isLinked).length;
-  const storagePercentage = totalStorage > 0 ? (usedStorage / totalStorage) * 100 : 0;
+  const storagePercentage = (usedStorage / totalStorage) * 100;
   
   const totalFiles = categories.reduce((acc, category) => acc + category.files.length, 0);
   
