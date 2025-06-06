@@ -1,3 +1,4 @@
+
 import { supabase } from "./supabase";
 import { CloudService, CloudFile, FileCategory } from "./types";
 
@@ -174,15 +175,15 @@ class SupabaseStorageService {
   private async getServiceInfo(serviceType: string, accessToken: string): Promise<{ totalStorage: number; usedStorage: number }> {
     // This would make actual API calls to each service
     // For now, returning mock data based on service type
-    const defaultStorages: Record<string, { totalStorage: number; usedStorage: number }> = {
-      'google-drive': { totalStorage: 15 * 1024 * 1024 * 1024, usedStorage: 0 }, // 15GB
-      'dropbox': { totalStorage: 2 * 1024 * 1024 * 1024, usedStorage: 0 }, // 2GB
-      'onedrive': { totalStorage: 5 * 1024 * 1024 * 1024, usedStorage: 0 }, // 5GB
-      'box': { totalStorage: 10 * 1024 * 1024 * 1024, usedStorage: 0 }, // 10GB
-      'mega': { totalStorage: 50 * 1024 * 1024 * 1024, usedStorage: 0 } // 50GB
+    const defaultStorages: Record<string, { total: number; used: number }> = {
+      'google-drive': { total: 15 * 1024 * 1024 * 1024, used: 0 }, // 15GB
+      'dropbox': { total: 2 * 1024 * 1024 * 1024, used: 0 }, // 2GB
+      'onedrive': { total: 5 * 1024 * 1024 * 1024, used: 0 }, // 5GB
+      'box': { total: 10 * 1024 * 1024 * 1024, used: 0 }, // 10GB
+      'mega': { total: 50 * 1024 * 1024 * 1024, used: 0 } // 50GB
     };
 
-    return defaultStorages[serviceType] || { totalStorage: 0, usedStorage: 0 };
+    return defaultStorages[serviceType] || { total: 0, used: 0 };
   }
 
   private getServiceIcon(serviceType: string): 'cloud' | 'archive' | 'database' | 'hard-drive' {
