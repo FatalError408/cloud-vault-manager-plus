@@ -9,6 +9,7 @@ import { WelcomeMessage } from "@/components/WelcomeMessage";
 import { DashboardStats } from "@/components/DashboardStats";
 import { UserProfile } from "@/components/UserProfile";
 import { QuickActions } from "@/components/QuickActions";
+import { SettingsPage } from "@/components/SettingsPage";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { StorageProvider } from "@/contexts/StorageContext";
@@ -71,11 +72,7 @@ const DashboardLayout = () => {
               </TabsContent>
 
               <TabsContent value="settings">
-                <div className="text-center py-12">
-                  <Settings className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Settings Coming Soon</h3>
-                  <p className="text-gray-600">Advanced settings and preferences will be available here.</p>
-                </div>
+                <SettingsPage />
               </TabsContent>
             </Tabs>
           </div>
