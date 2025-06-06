@@ -15,9 +15,9 @@ fi
 
 # Get the repository name from the user if not already set
 if [ -z "$REPO_NAME" ]; then
-  echo "📝 Enter your repository name (default: cloud-vault-manager):"
+  echo "📝 Enter your repository name (default: cloud-vault-manager-plus):"
   read REPO_NAME
-  REPO_NAME=${REPO_NAME:-cloud-vault-manager}
+  REPO_NAME=${REPO_NAME:-cloud-vault-manager-plus}
 fi
 
 echo "🏗️  Building for GitHub Pages deployment to $GITHUB_USERNAME/$REPO_NAME..."
@@ -25,14 +25,19 @@ echo "🏗️  Building for GitHub Pages deployment to $GITHUB_USERNAME/$REPO_NA
 # Create backup of original files
 cp index.html index.html.backup
 cp vite.config.ts vite.config.ts.backup
+cp src/App.tsx src/App.tsx.backup
 
 # Update the base href in index.html for GitHub Pages
 echo "🔧 Updating base href for GitHub Pages..."
-sed -i.bak "s|<base href=\"/cloud-vault-manager/\" />|<base href=\"/$REPO_NAME/\" />|g" index.html
+sed -i.bak "s|<base href=\"/cloud-vault-manager-plus/\" />|<base href=\"/$REPO_NAME/\" />|g" index.html
 
 # Update vite.config.ts base path
 echo "🔧 Updating vite config base path..."
-sed -i.bak "s|base: \"/cloud-vault-manager/\"|base: \"/$REPO_NAME/\"|g" vite.config.ts
+sed -i.bak "s|base: \"/cloud-vault-manager-plus/\"|base: \"/$REPO_NAME/\"|g" vite.config.ts
+
+# Update App.tsx basename
+echo "🔧 Updating App.tsx basename..."
+sed -i.bak "s|basename=\"/cloud-vault-manager-plus\"|basename=\"/$REPO_NAME\"|g" src/App.tsx
 
 # Build the app
 echo "📦 Building the application..."
@@ -42,6 +47,7 @@ if [ $? -ne 0 ]; then
   echo "❌ Build failed! Please fix the errors and try again."
   mv index.html.backup index.html
   mv vite.config.ts.backup vite.config.ts
+  mv src/App.tsx.backup src/App.tsx
   exit 1
 fi
 
@@ -61,6 +67,10 @@ echo "Files in dist/:"
 ls -la dist/
 echo "Content of dist/index.html (first 20 lines):"
 head -20 dist/index.html
+echo "JavaScript files:"
+find dist -name "*.js" -type f
+echo "CSS files:"
+find dist -name "*.css" -type f
 
 # Initialize git in the dist folder
 echo "🌿 Initializing git repository in the dist folder..."
@@ -86,6 +96,10 @@ rm vite.config.ts
 mv vite.config.ts.backup vite.config.ts
 rm -f vite.config.ts.bak
 
+rm src/App.tsx
+mv src/App.tsx.backup src/App.tsx
+rm -f src/App.tsx.bak
+
 echo ""
 echo "✅ Deployment complete! Your site will be available at:"
 echo "🌐 https://$GITHUB_USERNAME.github.io/$REPO_NAME/"
@@ -103,4 +117,5 @@ echo "3. ➕ Add to 'Authorized redirect URIs':"
 echo "   - https://$GITHUB_USERNAME.github.io/$REPO_NAME/"
 echo ""
 echo "⏰ It may take a few minutes for your site to be available."
+echo "🔧 If you see a blank page, check browser console for errors and ensure GitHub Pages is enabled"
 echo "🎉 Happy deploying!"
