@@ -7,7 +7,14 @@
     <title>Cloud Vault Manager</title>
     <script>
       // Single Page Apps for GitHub Pages
+      // MIT License
+      // This script takes the current url and converts the path and query
+      // string into just a query string, and then redirects the browser
+      // to the new url with only a query string and hash fragment
+
+      // For GitHub Pages projects (not custom domains)
       var pathSegmentsToKeep = 1;
+
       var l = window.location;
       var redirect = l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
         '/' + l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
