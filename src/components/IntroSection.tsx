@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Cloud, CloudCog, Lock, CloudOff, ArrowRight } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/SupabaseAuthContext";
 
 export function IntroSection() {
   const { login } = useAuth();
@@ -11,7 +11,7 @@ export function IntroSection() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 items-center">
         <div className="flex flex-col space-y-4">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-            Your Free Cloud <span className="bg-gradient-to-r from-cloud-blue to-cloud-light-blue text-transparent bg-clip-text">Storage</span> Solution
+            Your Free Cloud <span className="bg-gradient-to-r from-cloud-blue to-blue-400 text-transparent bg-clip-text">Storage</span> Solution
           </h1>
           <p className="text-lg text-gray-600 mt-4">
             Combine all your free cloud storage from different providers into one unified experience. Stop paying for storage you don't need!

@@ -20,17 +20,38 @@ export const SupabaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    console.log("Auth provider initializing...");
+    
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        loadUserProfile(session.user);
-      } else {
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log("Initial session:", session, "Error:", error);
+        
+        if (error) {
+          console.error("Session error:", error);
+          setIsLoading(false);
+          return;
+        }
+
+        if (session?.user) {
+          await loadUserProfile(session.user);
+        } else {
+          console.log("No initial session found");
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Error getting initial session:", error);
         setIsLoading(false);
       }
-    });
+    };
+
+    getInitialSession();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session);
+      
       if (session?.user) {
         await loadUserProfile(session.user);
       } else {
@@ -39,30 +60,24 @@ export const SupabaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log("Cleaning up auth subscription");
+      subscription.unsubscribe();
+    };
   }, []);
 
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', supabaseUser.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading profile:', error);
-        setIsLoading(false);
-        return;
-      }
-
+      console.log("Loading profile for user:", supabaseUser.id);
+      
+      // For now, create a simple user object without database dependency
       const userData: User = {
         id: supabaseUser.id,
-        name: profile?.full_name || supabaseUser.user_metadata?.full_name || supabaseUser.email || '',
+        name: supabaseUser.user_metadata?.full_name || supabaseUser.email?.split('@')[0] || 'User',
         email: supabaseUser.email || '',
-        photoUrl: profile?.avatar_url || supabaseUser.user_metadata?.avatar_url,
+        photoUrl: supabaseUser.user_metadata?.avatar_url,
         isLoggedIn: true,
-        joinDate: profile?.created_at || new Date().toISOString(),
+        joinDate: new Date().toISOString(),
         lastLoginDate: new Date().toISOString(),
         preferences: {
           theme: 'light',
@@ -79,6 +94,7 @@ export const SupabaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
       };
 
+      console.log("User profile loaded:", userData);
       setUser(userData);
       setIsLoading(false);
     } catch (error) {
@@ -89,11 +105,13 @@ export const SupabaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const login = async (): Promise<void> => {
     try {
+      console.log("Starting login process...");
       setIsLoading(true);
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/CloudVaultManager',
+          redirectTo: window.location.origin,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -155,25 +173,6 @@ export const SupabaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!user) return;
     
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: updates.name || user.name,
-          avatar_url: updates.photoUrl || user.photoUrl,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
-
-      if (error) {
-        console.error('Update profile error:', error);
-        toast({
-          title: "Update failed",
-          description: error.message,
-          variant: "destructive"
-        });
-        return;
-      }
-
       const updatedUser = { 
         ...user, 
         ...updates,
@@ -194,6 +193,8 @@ export const SupabaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       });
     }
   };
+
+  console.log("Auth context render - user:", user, "isLoading:", isLoading);
 
   return (
     <AuthContext.Provider value={{ user, login, logout, isLoading, updateUserProfile }}>
