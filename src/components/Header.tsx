@@ -4,7 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { LogOut, User, Github } from "lucide-react";
+import { LogOut, User, Github, Shield, Settings } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export function Header() {
   const { user, login, logout, isLoading } = useAuth();
@@ -27,11 +28,17 @@ export function Header() {
             <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
           </svg>
           <h1 className="font-bold text-xl text-cloud-blue">Cloud Vault Manager</h1>
+          {window.location.hostname !== 'localhost' && (
+            <Badge variant="outline" className="text-xs">
+              <Shield className="h-3 w-3 mr-1" />
+              Live
+            </Badge>
+          )}
         </div>
         
         <div className="flex items-center gap-3">
           <a 
-            href="https://github.com/your-username/cloud-vault-manager" 
+            href="https://github.com/fatalerror408/cloud-vault-manager-plus" 
             target="_blank" 
             rel="noopener noreferrer"
             className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
@@ -57,8 +64,22 @@ export function Header() {
                   <div className="flex flex-col space-y-1 leading-none">
                     <p className="font-medium">{user.name}</p>
                     <p className="text-xs text-muted-foreground">{user.email}</p>
+                    {user.lastLoginDate && (
+                      <p className="text-xs text-muted-foreground">
+                        Last login: {new Date(user.lastLoginDate).toLocaleDateString()}
+                      </p>
+                    )}
                   </div>
                 </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer">
+                  <User className="h-4 w-4 mr-2" />
+                  Profile Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Preferences
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => logout()} className="text-red-600 cursor-pointer">
                   <LogOut className="h-4 w-4 mr-2" />
