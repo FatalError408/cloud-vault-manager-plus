@@ -27,7 +27,7 @@ export interface User {
 export interface StorageService {
   id: string;
   name: string;
-  type: 'google-drive' | 'dropbox' | 'onedrive' | 'box' | 'mega';
+  type: 'google-drive' | 'dropbox' | 'onedrive' | 'box';
   isConnected: boolean;
   storageUsed: number;
   totalStorage: number;
@@ -48,7 +48,7 @@ export interface FileItem {
 export interface CloudService {
   id: string;
   name: string;
-  type: 'google-drive' | 'dropbox' | 'onedrive' | 'box' | 'mega';
+  type: 'google-drive' | 'dropbox' | 'onedrive' | 'box';
   isLinked: boolean;
   usedStorage: number;
   totalStorage: number;
