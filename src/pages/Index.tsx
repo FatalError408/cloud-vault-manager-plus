@@ -17,24 +17,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LayoutDashboard, Files, User, Settings } from "lucide-react";
 
 const DashboardLayout = () => {
-  const { user, isLoading } = useAuth();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   
-  console.log("DashboardLayout render - user:", user, "isLoading:", isLoading);
-  
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-  
   if (!user) {
-    console.log("No user, showing intro section");
     return (
       <div className="bg-gray-50 min-h-screen">
         <Header />
@@ -43,7 +29,6 @@ const DashboardLayout = () => {
     );
   }
   
-  console.log("User found, showing dashboard");
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       <Header />
@@ -98,7 +83,6 @@ const DashboardLayout = () => {
 };
 
 const Index = () => {
-  console.log("Index component render");
   return (
     <SupabaseAuthProvider>
       <SupabaseStorageProvider>
