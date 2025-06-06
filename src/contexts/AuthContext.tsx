@@ -1,14 +1,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User } from "@/lib/types";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 
 interface AuthContextType {
   user: User | null;
   login: () => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
-  updateUserProfile: (updates: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,11 +39,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       script.onerror = () => {
         console.error("Failed to load Google API script");
-        toast({
-          title: "Authentication Error",
-          description: "Failed to load Google authentication. Please refresh the page.",
-          variant: "destructive"
-        });
         setIsLoading(false);
       };
       document.body.appendChild(script);
@@ -59,16 +53,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       try {
-        // Get the current domain for proper configuration
-        const currentDomain = window.location.origin;
-        console.log("Current domain:", currentDomain);
-
         window.google.accounts.id.initialize({
           client_id: '212192605206-hgfped85t9rtu2ek0g731utottvedjt4.apps.googleusercontent.com',
           callback: handleGoogleCallback,
           auto_select: false,
-          cancel_on_tap_outside: true,
-          ux_mode: 'popup'
+          cancel_on_tap_outside: true
         });
         console.log("Google Auth initialized successfully");
         setGapiLoaded(true);
@@ -78,18 +67,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (savedUser) {
           try {
             const parsedUser = JSON.parse(savedUser);
-            // Validate the saved user data
-            if (parsedUser.id && parsedUser.name && parsedUser.email) {
-              setUser(parsedUser);
-              console.log("User restored from localStorage", parsedUser);
-              toast({
-                title: "Welcome back!",
-                description: `Signed in as ${parsedUser.name}`,
-              });
-            } else {
-              console.log("Invalid saved user data, clearing localStorage");
-              localStorage.removeItem("cloud-vault-user");
-            }
+            setUser(parsedUser);
+            console.log("User restored from localStorage", parsedUser);
           } catch (e) {
             console.error("Failed to parse user data", e);
             localStorage.removeItem("cloud-vault-user");
@@ -99,11 +78,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false);
       } catch (error) {
         console.error("Error initializing Google Auth:", error);
-        toast({
-          title: "Authentication Setup Failed", 
-          description: "Please refresh the page to try again.",
-          variant: "destructive"
-        });
         setIsLoading(false);
       }
     };
@@ -111,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkGoogleLibrary();
   }, []);
 
-  // Handle Google callback with enhanced user data
+  // Handle Google callback
   const handleGoogleCallback = (response: any) => {
     console.log("Google sign-in callback received", response);
     try {
@@ -130,36 +104,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: payload.name,
         email: payload.email,
         photoUrl: payload.picture,
-        isLoggedIn: true,
-        joinDate: new Date().toISOString(),
-        lastLoginDate: new Date().toISOString(),
-        preferences: {
-          theme: 'light',
-          notifications: {
-            email: true,
-            push: false,
-            fileUploads: true,
-            storageAlerts: true
-          },
-          privacy: {
-            profileVisible: true,
-            activityTracking: false
-          }
-        }
+        isLoggedIn: true
       };
 
       setUser(googleUser);
-      saveUserToStorage(googleUser);
-      
+      localStorage.setItem("cloud-vault-user", JSON.stringify(googleUser));
       toast({
-        title: "Welcome to Cloud Vault Manager!",
-        description: `Successfully signed in as ${googleUser.name}`,
+        title: "Sign in successful",
+        description: `Welcome, ${googleUser.name}!`
       });
     } catch (error) {
       console.error("Google sign-in error:", error);
       toast({
         title: "Sign in failed",
-        description: "Could not process your Google sign-in. Please try again.",
+        description: "Could not sign in with Google",
         variant: "destructive"
       });
     } finally {
@@ -167,23 +125,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Enhanced user storage
-  const saveUserToStorage = (userData: User) => {
-    try {
-      localStorage.setItem("cloud-vault-user", JSON.stringify(userData));
-      localStorage.setItem("cloud-vault-user-timestamp", new Date().toISOString());
-    } catch (error) {
-      console.error("Failed to save user to localStorage:", error);
-    }
-  };
-
-  // Google Sign-In with better error handling
+  // Google Sign-In
   const login = async (): Promise<void> => {
     console.log("Login requested, gapi loaded:", gapiLoaded);
     if (!gapiLoaded || !window.google) {
       toast({
-        title: "Please wait",
-        description: "Google authentication is still loading...",
+        title: "Google API not loaded",
+        description: "Please try again in a moment",
         variant: "destructive"
       });
       return;
@@ -193,75 +141,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(true);
       console.log("Prompting Google sign-in...");
       
-      // Check if we're in production and show appropriate message
-      const isProduction = window.location.hostname !== 'localhost';
-      if (isProduction) {
-        console.log("Production environment detected");
-      }
-      
       // Show the Google One Tap prompt
-      window.google.accounts.id.prompt((notification: any) => {
-        console.log("Google prompt notification:", notification);
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          console.log("Prompt not displayed, trying renderButton fallback");
-          // Fallback: create a temporary sign-in button and trigger it
-          const tempDiv = document.createElement('div');
-          tempDiv.style.position = 'absolute';
-          tempDiv.style.top = '-9999px';
-          document.body.appendChild(tempDiv);
-          
-          window.google.accounts.id.renderButton(tempDiv, {
-            theme: 'outline',
-            size: 'large',
-            type: 'standard',
-            width: '250'
-          });
-          
-          // Trigger click after a short delay
-          setTimeout(() => {
-            const button = tempDiv.querySelector('div[role="button"]') as HTMLElement;
-            if (button) {
-              button.click();
-            }
-            document.body.removeChild(tempDiv);
-          }, 100);
-        }
-        setIsLoading(false);
-      });
+      window.google.accounts.id.prompt();
     } catch (error) {
       console.error("Login failed", error);
       toast({
-        title: "Sign in failed",
-        description: "Please try again or refresh the page",
+        title: "Login failed",
+        description: "An error occurred during sign in",
         variant: "destructive"
       });
       setIsLoading(false);
     }
   };
 
-  // Enhanced logout
   const logout = async (): Promise<void> => {
     setIsLoading(true);
     try {
-      // Update last logout time
-      if (user) {
-        const updatedUser = { ...user, lastLogoutDate: new Date().toISOString() };
-        saveUserToStorage(updatedUser);
-      }
-      
       // Clear user data
       setUser(null);
       localStorage.removeItem("cloud-vault-user");
-      localStorage.removeItem("cloud-vault-user-timestamp");
-      
-      // Sign out from Google
-      if (window.google && window.google.accounts) {
-        window.google.accounts.id.disableAutoSelect();
-      }
-      
       toast({
-        title: "Signed out successfully",
-        description: "You have been logged out of Cloud Vault Manager"
+        title: "Signed out",
+        description: "You have been successfully signed out"
       });
     } catch (error) {
       console.error("Logout failed", error);
@@ -275,35 +176,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Update user profile
-  const updateUserProfile = async (updates: Partial<User>): Promise<void> => {
-    if (!user) return;
-    
-    try {
-      const updatedUser = { 
-        ...user, 
-        ...updates,
-        lastUpdated: new Date().toISOString()
-      };
-      setUser(updatedUser);
-      saveUserToStorage(updatedUser);
-      
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully"
-      });
-    } catch (error) {
-      console.error("Failed to update profile:", error);
-      toast({
-        title: "Update failed",
-        description: "Could not update your profile. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading, updateUserProfile }}>
+    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
@@ -316,4 +190,3 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
-

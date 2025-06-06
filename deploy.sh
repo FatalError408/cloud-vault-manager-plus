@@ -1,138 +1,88 @@
 
 #!/usr/bin/env bash
 
+# Exit on error
 set -e
 
-echo "🚀 Cloud Vault Manager - Enhanced GitHub Pages Deployment Script"
-echo "================================================================"
+echo "🚀 Cloud Vault Manager - GitHub Pages Deployment Script"
+echo "======================================================="
 
-# Check if we're in a git repository
-if ! git rev-parse --git-dir > /dev/null 2>&1; then
-    echo "❌ Error: Not in a git repository"
-    echo "Please run this script from your project's root directory"
-    exit 1
+# Get the username from the user if not already set
+if [ -z "$GITHUB_USERNAME" ]; then
+  echo "📝 Enter your GitHub username:"
+  read GITHUB_USERNAME
 fi
 
-# Get repository info from git
-REPO_URL=$(git config --get remote.origin.url)
-if [[ $REPO_URL == *"github.com"* ]]; then
-  if [[ $REPO_URL == *".git" ]]; then
-    REPO_URL=${REPO_URL%.git}
-  fi
-  GITHUB_USERNAME=$(echo $REPO_URL | sed 's/.*github.com[:/]\([^/]*\).*/\1/')
-  REPO_NAME=$(echo $REPO_URL | sed 's/.*\/\([^/]*\)$/\1/')
-else
-  echo "❌ Not a GitHub repository or unable to detect repository info"
-  exit 1
+# Get the repository name from the user if not already set
+if [ -z "$REPO_NAME" ]; then
+  echo "📝 Enter your repository name (default: cloud-vault-manager):"
+  read REPO_NAME
+  REPO_NAME=${REPO_NAME:-cloud-vault-manager}
 fi
 
-echo "📍 Detected repository: $GITHUB_USERNAME/$REPO_NAME"
-echo "🔧 Setting up GitHub Pages deployment..."
+echo "🏗️  Building for GitHub Pages deployment to $GITHUB_USERNAME/$REPO_NAME..."
 
-# Ensure we're on the main branch
-CURRENT_BRANCH=$(git branch --show-current)
-if [ "$CURRENT_BRANCH" != "main" ] && [ "$CURRENT_BRANCH" != "master" ]; then
-  echo "⚠️  Warning: You're not on the main/master branch"
-  echo "Current branch: $CURRENT_BRANCH"
-  read -p "Do you want to continue? (y/N): " -n 1 -r
-  echo
-  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "❌ Deployment cancelled"
-    exit 1
-  fi
-fi
+# Create backup of original index.html
+cp index.html index.html.backup
 
-# Check if there are uncommitted changes
-if ! git diff-index --quiet HEAD --; then
-  echo "⚠️  Warning: You have uncommitted changes"
-  echo "Please commit or stash your changes before deploying"
-  git status --porcelain
-  exit 1
-fi
-
-# Install dependencies if node_modules doesn't exist
-if [ ! -d "node_modules" ]; then
-  echo "📦 Installing dependencies..."
-  npm install
-fi
+# Update the base href in index.html for GitHub Pages
+echo "🔧 Updating base href for GitHub Pages..."
+sed -i.bak "s|<base href=\"/cloud-vault-manager/\" />|<base href=\"/$REPO_NAME/\" />|g" index.html
 
 # Build the app
-echo "🏗️  Building the application for production..."
+echo "📦 Building the application..."
 npm run build
 
 if [ $? -ne 0 ]; then
   echo "❌ Build failed! Please fix the errors and try again."
+  mv index.html.backup index.html
   exit 1
 fi
 
-# Prepare files for GitHub Pages
+# Create necessary files for GitHub Pages
 echo "📄 Preparing files for GitHub Pages..."
-# Create .nojekyll to prevent Jekyll processing
 touch dist/.nojekyll
 
-# Create 404.html for SPA routing
-cp dist/index.html dist/404.html
-
-# Debug output
-echo "🔍 Build verification:"
-echo "Files in dist/:"
-ls -la dist/ | head -10
-echo "JavaScript files found: $(find dist -name "*.js" -type f | wc -l)"
-echo "CSS files found: $(find dist -name "*.css" -type f | wc -l)"
-
-# Backup current branch
-ORIGINAL_BRANCH=$CURRENT_BRANCH
-
-# Check if gh-pages branch exists
-if git show-ref --verify --quiet refs/heads/gh-pages; then
-  echo "🌿 gh-pages branch exists, switching to it..."
-  git checkout gh-pages
-  # Remove all files except .git and dist
-  find . -maxdepth 1 ! -name '.git' ! -name 'dist' ! -name '.' -exec rm -rf {} + 2>/dev/null || true
-else
-  echo "🌿 Creating new gh-pages branch..."
-  git checkout --orphan gh-pages
-  # Remove all files from the new orphan branch except dist
-  git rm -rf . 2>/dev/null || true
-  # Clear any remaining files except .git and dist
-  find . -maxdepth 1 ! -name '.git' ! -name 'dist' ! -name '.' -exec rm -rf {} + 2>/dev/null || true
+# Copy 404.html if it exists
+if [ -f "404.html" ]; then
+  cp 404.html dist/
 fi
 
-# Copy built files to root
-echo "📋 Copying built files to gh-pages branch..."
-cp -r dist/* . 2>/dev/null || true
-cp dist/.nojekyll . 2>/dev/null || true
-
-# Clean up dist directory
-rm -rf dist
-
-# Commit and push
-echo "💾 Committing changes to gh-pages..."
+# Initialize git in the dist folder
+echo "🌿 Initializing git repository in the dist folder..."
+cd dist
+git init
+git checkout -b gh-pages
 git add .
-git commit -m "🚀 Deploy Cloud Vault Manager to GitHub Pages - $(date '+%Y-%m-%d %H:%M:%S')" || {
-  echo "ℹ️  No changes to commit - deployment is up to date"
-}
+git commit -m "Deploy Cloud Vault Manager to GitHub Pages - $(date)"
 
+# Force push to the gh-pages branch
 echo "🚀 Pushing to gh-pages branch..."
-git push origin gh-pages --force
+git remote add origin https://github.com/$GITHUB_USERNAME/$REPO_NAME.git 2>/dev/null || true
+git push -f origin gh-pages
 
-# Switch back to original branch
-echo "🔄 Switching back to $ORIGINAL_BRANCH branch..."
-git checkout $ORIGINAL_BRANCH
+cd ..
+
+# Restore original index.html
+rm index.html
+mv index.html.backup index.html
+rm -f index.html.bak
 
 echo ""
-echo "✅ Deployment complete!"
+echo "✅ Deployment complete! Your site will be available at:"
+echo "🌐 https://$GITHUB_USERNAME.github.io/$REPO_NAME/"
 echo ""
-echo "📋 Next steps:"
-echo "1. 🔗 Visit: https://github.com/$GITHUB_USERNAME/$REPO_NAME/settings/pages"
+echo "⚠️  IMPORTANT: Follow these steps to activate GitHub Pages:"
+echo "1. 🔗 Go to: https://github.com/$GITHUB_USERNAME/$REPO_NAME/settings/pages"
 echo "2. 📋 Under 'Source', select 'Deploy from a branch'"
 echo "3. 🌿 Under 'Branch', select 'gh-pages' and '/ (root)' then save"
-echo "4. ⏰ Wait 2-5 minutes for deployment to complete"
 echo ""
-echo "🌐 Your app will be available at: https://$GITHUB_USERNAME.github.io/$REPO_NAME/"
+echo "🔐 ALSO IMPORTANT: Update your Google OAuth settings:"
+echo "1. 🌐 Go to: Google Cloud Console -> APIs & Credentials -> OAuth 2.0 Client IDs"
+echo "2. ➕ Add to 'Authorized JavaScript origins':"
+echo "   - https://$GITHUB_USERNAME.github.io"
+echo "3. ➕ Add to 'Authorized redirect URIs':"
+echo "   - https://$GITHUB_USERNAME.github.io/$REPO_NAME/"
 echo ""
-echo "💡 Pro tip: Use GitHub Actions for automatic deployment on every push!"
-echo "   The .github/workflows/deploy.yml file is already configured for this."
-echo ""
+echo "⏰ It may take a few minutes for your site to be available."
 echo "🎉 Happy deploying!"
-
