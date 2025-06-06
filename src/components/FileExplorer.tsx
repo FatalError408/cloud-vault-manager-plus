@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Trash, FileIcon, FileText, Image, Video, Music, Archive } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export function FileExplorer() {
   const { categories, cloudServices, deleteFile } = useStorage();
@@ -87,10 +88,10 @@ export function FileExplorer() {
                           <p className="text-xs mt-1">
                             <span 
                               className="inline-block h-2 w-2 rounded-full mr-1"
-                              style={{ backgroundColor: getServiceColor(file.serviceId) }}
+                              style={{ backgroundColor: getServiceColor(file.service) }}
                             ></span>
                             <span className="text-gray-500">
-                              {cloudServices.find(s => s.id === file.serviceId)?.name}
+                              {cloudServices.find(s => s.id === file.service)?.name}
                             </span>
                           </p>
                         </div>
