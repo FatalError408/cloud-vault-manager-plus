@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User } from "@/lib/types";
 import { toast } from "@/components/ui/use-toast";
@@ -67,7 +68,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           callback: handleGoogleCallback,
           auto_select: false,
           cancel_on_tap_outside: true,
-          ux_mode: 'popup'
+          ux_mode: 'popup',
+          use_fedcm_for_prompt: false
         });
         console.log("Google Auth initialized successfully");
         setGapiLoaded(true);
