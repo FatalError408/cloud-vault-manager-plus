@@ -10,9 +10,9 @@ import { DashboardStats } from "@/components/DashboardStats";
 import { UserProfile } from "@/components/UserProfile";
 import { QuickActions } from "@/components/QuickActions";
 import { SettingsPage } from "@/components/SettingsPage";
-import { useAuth } from "@/contexts/SupabaseAuthContext";
-import { SupabaseAuthProvider } from "@/contexts/SupabaseAuthContext";
-import { SupabaseStorageProvider } from "@/contexts/SupabaseStorageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { StorageProvider } from "@/contexts/StorageContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LayoutDashboard, Files, User, Settings } from "lucide-react";
 
@@ -84,11 +84,11 @@ const DashboardLayout = () => {
 
 const Index = () => {
   return (
-    <SupabaseAuthProvider>
-      <SupabaseStorageProvider>
+    <AuthProvider>
+      <StorageProvider>
         <DashboardLayout />
-      </SupabaseStorageProvider>
-    </SupabaseAuthProvider>
+      </StorageProvider>
+    </AuthProvider>
   );
 };
 
