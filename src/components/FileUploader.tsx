@@ -6,12 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload, X, File as FileIcon } from "lucide-react";
-import { useStorage } from "@/contexts/SupabaseStorageContext";
-import { useToast } from "@/components/ui/use-toast";
+import { useStorage } from "@/contexts/StorageContext";
+import { toast } from "@/components/ui/use-toast";
 
 export function FileUploader() {
   const { categories, uploadFile } = useStorage();
-  const { toast } = useToast();
   const [files, setFiles] = useState<File[]>([]);
   const [category, setCategory] = useState("");
   const [customCategory, setCustomCategory] = useState("");
