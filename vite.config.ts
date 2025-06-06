@@ -15,5 +15,5 @@ export default defineConfig(({ command }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  base: "/cloud-vault-manager-plus/",
+  base: "/cloud-vault-manager/",
 }));
