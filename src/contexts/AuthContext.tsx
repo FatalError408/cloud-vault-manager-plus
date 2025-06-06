@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User } from "@/lib/types";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 interface AuthContextType {
   user: User | null;
@@ -68,8 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           callback: handleGoogleCallback,
           auto_select: false,
           cancel_on_tap_outside: true,
-          ux_mode: 'popup',
-          use_fedcm_for_prompt: false
+          ux_mode: 'popup'
         });
         console.log("Google Auth initialized successfully");
         setGapiLoaded(true);
@@ -203,16 +202,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Show the Google One Tap prompt
       window.google.accounts.id.prompt((notification: any) => {
         console.log("Google prompt notification:", notification);
-        if (notification.isNotDisplayed()) {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
           console.log("Prompt not displayed, trying renderButton fallback");
-          // Fallback: create a temporary sign-in button
+          // Fallback: create a temporary sign-in button and trigger it
           const tempDiv = document.createElement('div');
+          tempDiv.style.position = 'absolute';
+          tempDiv.style.top = '-9999px';
+          document.body.appendChild(tempDiv);
+          
           window.google.accounts.id.renderButton(tempDiv, {
             theme: 'outline',
             size: 'large',
-            type: 'standard'
+            type: 'standard',
+            width: '250'
           });
-          tempDiv.click();
+          
+          // Trigger click after a short delay
+          setTimeout(() => {
+            const button = tempDiv.querySelector('div[role="button"]') as HTMLElement;
+            if (button) {
+              button.click();
+            }
+            document.body.removeChild(tempDiv);
+          }, 100);
         }
         setIsLoading(false);
       });
@@ -304,3 +316,4 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+

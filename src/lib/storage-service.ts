@@ -6,6 +6,7 @@ export const cloudServices: CloudService[] = [
   {
     id: "google-drive",
     name: "Google Drive",
+    type: "google-drive",
     icon: "cloud",
     totalStorage: 15,
     usedStorage: 0,
@@ -16,6 +17,7 @@ export const cloudServices: CloudService[] = [
   {
     id: "dropbox",
     name: "Dropbox",
+    type: "dropbox",
     icon: "archive",
     totalStorage: 2,
     usedStorage: 0,
@@ -26,6 +28,7 @@ export const cloudServices: CloudService[] = [
   {
     id: "mega",
     name: "Mega",
+    type: "onedrive",
     icon: "database",
     totalStorage: 50,
     usedStorage: 0,
@@ -36,6 +39,7 @@ export const cloudServices: CloudService[] = [
   {
     id: "onedrive",
     name: "OneDrive",
+    type: "onedrive",
     icon: "hard-drive",
     totalStorage: 5,
     usedStorage: 0,
@@ -46,6 +50,7 @@ export const cloudServices: CloudService[] = [
   {
     id: "pcloud",
     name: "pCloud",
+    type: "box",
     icon: "cloud",
     totalStorage: 10,
     usedStorage: 0,
@@ -57,10 +62,10 @@ export const cloudServices: CloudService[] = [
 
 // Default file categories
 export const defaultCategories: FileCategory[] = [
-  { id: "work", name: "Work", files: [] },
-  { id: "documents", name: "Documents", files: [] },
-  { id: "photos", name: "Photos", files: [] },
-  { id: "videos", name: "Videos", files: [] }
+  { id: "work", name: "Work", files: [], totalSize: 0, color: "#0077C2" },
+  { id: "documents", name: "Documents", files: [], totalSize: 0, color: "#0061FF" },
+  { id: "photos", name: "Photos", files: [], totalSize: 0, color: "#D9272E" },
+  { id: "videos", name: "Videos", files: [], totalSize: 0, color: "#0078D4" }
 ];
 
 // Storage service for managing cloud storage and files
@@ -155,7 +160,9 @@ class StorageService {
       const newCategory: FileCategory = {
         id: category.toLowerCase().replace(/\s+/g, '-'),
         name: category,
-        files: []
+        files: [],
+        totalSize: 0,
+        color: "#666666"
       };
       this.categories.push(newCategory);
       targetCategoryIndex = this.categories.length - 1;
@@ -176,13 +183,14 @@ class StorageService {
       id: Date.now().toString(),
       name: file.name,
       size: file.size,
-      type: file.type,
-      category: this.categories[targetCategoryIndex].id,
-      lastModified: new Date(file.lastModified),
-      service: selectedService.id
+      type: file.type as 'file' | 'folder',
+      modifiedDate: new Date(file.lastModified).toISOString(),
+      serviceId: selectedService.id,
+      path: `/${file.name}`
     };
 
     this.categories[targetCategoryIndex].files.push(newFile);
+    this.categories[targetCategoryIndex].totalSize += file.size;
     
     // Update used storage for the service
     const serviceIndex = this.services.findIndex(s => s.id === selectedService.id);
@@ -206,11 +214,14 @@ class StorageService {
         const file = this.categories[categoryIndex].files[fileIndex];
         
         // Update service used storage
-        const serviceIndex = this.services.findIndex(s => s.id === file.service);
+        const serviceIndex = this.services.findIndex(s => s.id === file.serviceId);
         if (serviceIndex !== -1) {
           const sizeInGB = file.size / (1024 * 1024 * 1024);
           this.services[serviceIndex].usedStorage = Math.max(0, this.services[serviceIndex].usedStorage - sizeInGB);
         }
+        
+        // Update category total size
+        this.categories[categoryIndex].totalSize -= file.size;
         
         // Remove file
         this.categories[categoryIndex].files.splice(fileIndex, 1);

@@ -40,18 +40,28 @@ jobs:
         env:
           NODE_ENV: production
 
+      - name: Create 404.html for SPA routing
+        run: |
+          cp dist/index.html dist/404.html
+          echo "Created 404.html for SPA routing"
+
+      - name: Create .nojekyll file
+        run: |
+          touch dist/.nojekyll
+          echo "Created .nojekyll file"
+
       - name: Debug build output
         run: |
           echo "=== Build Directory Contents ==="
           ls -la dist/
-          echo "=== Index.html Content ==="
-          cat dist/index.html
+          echo "=== Index.html Content Preview ==="
+          head -20 dist/index.html
           echo "=== Assets Directory ==="
           ls -la dist/assets/ || echo "No assets directory"
-          echo "=== All JS files ==="
-          find dist -name "*.js" | head -10
-          echo "=== All CSS files ==="
-          find dist -name "*.css" | head -10
+          echo "=== JavaScript files count ==="
+          find dist -name "*.js" | wc -l
+          echo "=== CSS files count ==="
+          find dist -name "*.css" | wc -l
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -64,3 +74,9 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Output deployment URL
+        run: |
+          echo "🎉 Deployment successful!"
+          echo "🌐 Your app is available at: ${{ steps.deployment.outputs.page_url }}"
+
