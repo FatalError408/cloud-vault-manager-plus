@@ -6,7 +6,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: mode === 'production' ? '/cloud-vault-manager/' : '/',
+  base: mode === 'production' ? '/CloudVaultManager/' : '/',
   server: {
     host: "::",
     port: 8080,
