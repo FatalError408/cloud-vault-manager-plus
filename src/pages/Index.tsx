@@ -5,19 +5,12 @@ import { StorageSidebar } from "@/components/StorageSidebar";
 import { FileUploader } from "@/components/FileUploader";
 import { FileExplorer } from "@/components/FileExplorer";
 import { IntroSection } from "@/components/IntroSection";
-import { WelcomeMessage } from "@/components/WelcomeMessage";
-import { DashboardStats } from "@/components/DashboardStats";
-import { UserProfile } from "@/components/UserProfile";
-import { QuickActions } from "@/components/QuickActions";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { StorageProvider } from "@/contexts/StorageContext";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LayoutDashboard, Files, User, Settings } from "lucide-react";
 
 const DashboardLayout = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("dashboard");
   
   if (!user) {
     return (
@@ -33,52 +26,9 @@ const DashboardLayout = () => {
       <Header />
       <div className="flex-1 flex overflow-hidden">
         <StorageSidebar />
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-4 max-w-7xl mx-auto">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-6">
-                <TabsTrigger value="dashboard" className="flex items-center gap-2">
-                  <LayoutDashboard className="h-4 w-4" />
-                  <span className="hidden sm:inline">Dashboard</span>
-                </TabsTrigger>
-                <TabsTrigger value="files" className="flex items-center gap-2">
-                  <Files className="h-4 w-4" />
-                  <span className="hidden sm:inline">Files</span>
-                </TabsTrigger>
-                <TabsTrigger value="profile" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <span className="hidden sm:inline">Profile</span>
-                </TabsTrigger>
-                <TabsTrigger value="settings" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  <span className="hidden sm:inline">Settings</span>
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="dashboard" className="space-y-6">
-                <WelcomeMessage />
-                <DashboardStats />
-                <QuickActions />
-              </TabsContent>
-
-              <TabsContent value="files" className="space-y-6">
-                <FileUploader />
-                <FileExplorer />
-              </TabsContent>
-
-              <TabsContent value="profile">
-                <UserProfile />
-              </TabsContent>
-
-              <TabsContent value="settings">
-                <div className="text-center py-12">
-                  <Settings className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Settings Coming Soon</h3>
-                  <p className="text-gray-600">Advanced settings and preferences will be available here.</p>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
+        <main className="flex-1 overflow-y-auto p-4">
+          <FileUploader />
+          <FileExplorer />
         </main>
       </div>
     </div>

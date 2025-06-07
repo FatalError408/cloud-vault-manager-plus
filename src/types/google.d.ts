@@ -17,14 +17,6 @@ interface GsiButtonConfiguration {
   locale?: string;
 }
 
-interface PromptNotification {
-  isNotDisplayed: boolean;
-  isSkippedMoment: boolean;
-  isDismissedMoment?: boolean;
-  dismissedReason?: string;
-  getMomentType: () => string;
-}
-
 interface IdConfiguration {
   client_id: string;
   auto_select?: boolean;
@@ -50,7 +42,7 @@ interface Google {
   accounts: {
     id: {
       initialize: (config: IdConfiguration) => void;
-      prompt: (callback?: (notification: PromptNotification) => void) => void;
+      prompt: (callback?: (notification: { isNotDisplayed: boolean, isSkippedMoment: boolean }) => void) => void;
       renderButton: (parent: HTMLElement, options: GsiButtonConfiguration) => void;
       disableAutoSelect: () => void;
     };

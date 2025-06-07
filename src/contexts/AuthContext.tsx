@@ -86,7 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   // Handle Google callback
-  const handleGoogleCallback = (response: any) => {
+  const handleGoogleCallback = (response: CredentialResponse) => {
     console.log("Google sign-in callback received", response);
     try {
       // Decode JWT token
@@ -139,10 +139,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     try {
       setIsLoading(true);
+      // Display Google sign-in popup
       console.log("Prompting Google sign-in...");
-      
-      // Show the Google One Tap prompt
-      window.google.accounts.id.prompt();
+      window.google.accounts.id.prompt((notification) => {
+        console.log("Google prompt notification:", notification);
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          console.log("Google sign-in prompt was not displayed or skipped");
+          // Force the Google One Tap prompt to show by rendering a button
+          const googleSignInButton = document.createElement('div');
+          googleSignInButton.id = 'g_id_onload';
+          document.body.appendChild(googleSignInButton);
+          
+          window.google?.accounts.id.renderButton(googleSignInButton, {
+            type: 'standard',
+            theme: 'outline',
+            size: 'large',
+            text: 'signin_with',
+            shape: 'rectangular',
+          });
+          
+          // Trigger click on the button
+          setTimeout(() => {
+            const signInButton = document.querySelector('[id^="gsi_"]');
+            if (signInButton) {
+              (signInButton as HTMLElement).click();
+            } else {
+              console.error("Could not find Google sign-in button to click");
+              setIsLoading(false);
+            }
+          }, 100);
+        }
+      });
     } catch (error) {
       console.error("Login failed", error);
       toast({
