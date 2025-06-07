@@ -23,6 +23,9 @@
     <!-- GitHub Pages SPA routing script -->
     <script>
       // Single Page Apps for GitHub Pages
+      // MIT License
+      // This script checks to see if a redirect is present in the query string,
+      // converts it back into the correct url and adds it to the browser's history.
       (function(l) {
         if (l.search[1] === '/' ) {
           var decoded = sessionStorage.redirect;
@@ -34,12 +37,15 @@
         }
       }(window.location))
     </script>
+    
+    <!-- Base URL for GitHub Pages -->
+    <base href="/cloud-vault-manager-plus/" />
   </head>
 
   <body>
     <div id="root"></div>
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-    <script type="module" src="/cloud-vault-manager-plus/src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
