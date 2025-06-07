@@ -31,14 +31,14 @@
           var decoded = sessionStorage.redirect;
           delete sessionStorage.redirect;
           if (decoded) {
-            console.log('Redirecting from sessionStorage:', decoded);
-            l.replace(decoded);
+            l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+              decoded);
           }
         }
       }(window.location))
     </script>
     
-    <!-- Base URL for GitHub Pages -->
+    <!-- Base URL for GitHub Pages - will be updated during deployment -->
     <base href="/cloud-vault-manager/" />
   </head>
 
