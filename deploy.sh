@@ -19,6 +19,10 @@ fi
 
 echo "Deploying to GitHub Pages under $GITHUB_USERNAME/$REPO_NAME..."
 
+# Update the base href in index.html for GitHub Pages
+echo "Updating base href for GitHub Pages..."
+sed -i.bak "s|<base href=\"/cloud-vault-manager/\" />|<base href=\"/$REPO_NAME/\" />|g" index.html
+
 # Build the app
 echo "Building the application..."
 npm run build
@@ -26,8 +30,6 @@ npm run build
 # Create necessary files for GitHub Pages
 echo "Preparing files for GitHub Pages..."
 touch dist/.nojekyll
-# If using a custom domain, uncomment the next line and replace with your domain
-# echo "yourdomain.com" > dist/CNAME
 
 # Initialize git in the dist folder
 echo "Initializing git repository in the dist folder..."
@@ -41,12 +43,23 @@ echo "Pushing to gh-pages branch..."
 git push -f https://github.com/$GITHUB_USERNAME/$REPO_NAME.git main:gh-pages
 
 cd ..
+
+# Restore original index.html
+mv index.html.bak index.html
+
 echo "Deployment complete! Your site should be available at:"
 echo "https://$GITHUB_USERNAME.github.io/$REPO_NAME/"
 echo ""
-echo "IMPORTANT: Make sure to activate GitHub Pages in your repository settings:"
+echo "IMPORTANT: Follow these steps to activate GitHub Pages:"
 echo "1. Go to https://github.com/$GITHUB_USERNAME/$REPO_NAME/settings/pages"
 echo "2. Under 'Source', select 'Deploy from a branch'"
-echo "3. Under 'Branch', select 'gh-pages' and save"
+echo "3. Under 'Branch', select 'gh-pages' and '/ (root)' then save"
+echo ""
+echo "ALSO IMPORTANT: Update your Google OAuth settings:"
+echo "1. Go to Google Cloud Console -> APIs & Credentials -> OAuth 2.0 Client IDs"
+echo "2. Add these to 'Authorized JavaScript origins':"
+echo "   - https://$GITHUB_USERNAME.github.io"
+echo "3. Add these to 'Authorized redirect URIs':"
+echo "   - https://$GITHUB_USERNAME.github.io/$REPO_NAME/"
 echo ""
 echo "It may take a few minutes for your site to be available."
