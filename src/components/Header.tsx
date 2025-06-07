@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { LogOut, User, Github } from "lucide-react";
+import { LogOut, Github } from "lucide-react";
 
 export function Header() {
   const { user, login, logout, isLoading } = useAuth();
@@ -30,7 +30,7 @@ export function Header() {
         
         <div className="flex items-center gap-3">
           <a 
-            href="https://github.com/your-username/cloud-vault-manager" 
+            href="https://github.com/fatalerror408/CloudVaultManager" 
             target="_blank" 
             rel="noopener noreferrer"
             className="flex items-center text-sm text-gray-600 hover:text-gray-900"
@@ -44,15 +44,17 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-10 w-10 rounded-full p-0">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={user.photoUrl} alt={user.name} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={user.user_metadata?.avatar_url} alt={user.user_metadata?.full_name || user.email} />
+                    <AvatarFallback>
+                      {user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium">{user.name}</p>
+                    <p className="font-medium">{user.user_metadata?.full_name || 'User'}</p>
                     <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                 </div>
