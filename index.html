@@ -22,8 +22,22 @@
     
     <!-- Base URL for GitHub Pages - will be updated during deployment -->
     <base href="/cloud-vault-manager/" />
-    <script type="module" crossorigin src="/cloud-vault-manager/assets/index-D1cbDMRm.js"></script>
-    <link rel="stylesheet" crossorigin href="/cloud-vault-manager/assets/index-DrDYBBHx.css">
+
+    <!-- Single Page Apps for GitHub Pages -->
+    <script>
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          var decoded = l.search.slice(1).split('&').map(function(s) { 
+            return s.replace(/~and~/g, '&')
+          }).join('?');
+          window.history.replaceState(null, null,
+              l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location))
+    </script>
+    <script type="module" crossorigin src="/cloud-vault-manager/assets/index-BLEPENPT.js"></script>
+    <link rel="stylesheet" crossorigin href="/cloud-vault-manager/assets/index-C5t9WrEh.css">
   </head>
 
   <body>
