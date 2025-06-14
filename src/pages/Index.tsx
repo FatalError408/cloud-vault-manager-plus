@@ -1,10 +1,9 @@
 
-import { useAuth } from "@/contexts/AuthContext";
+import { usePuterAuth } from "@/contexts/PuterAuthContext";
 import { Header } from "@/components/Header";
 import { IntroSection } from "@/components/IntroSection";
 import React from "react";
 
-// Utility for boundary error fallback
 function ErrorBoundary({ error }: { error: string }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-red-50">
@@ -33,7 +32,7 @@ const Dashboard = ({
       <div className="flex justify-between items-center p-4 border-b bg-white">
         <div>
           <span className="font-medium">
-            Hi, {user.user_metadata?.full_name || user.email}
+            Hi, {user?.name || user?.email}
           </span>
         </div>
         <button
@@ -52,12 +51,11 @@ const Dashboard = ({
 );
 
 const Index = () => {
-  const { user, isLoading, login, logout } = useAuth();
+  const { user, isLoading, login, logout } = usePuterAuth();
   const [err, setErr] = React.useState<string | null>(null);
 
-  // Log key states to console for inspection
   React.useEffect(() => {
-    console.log("[Index] isLoading:", isLoading, "user:", user);
+    console.log("[Index][Puter] isLoading:", isLoading, "user:", user);
   }, [isLoading, user]);
 
   try {
@@ -79,6 +77,14 @@ const Index = () => {
         <>
           <Header />
           <IntroSection />
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={login}
+              className="bg-gradient-cloud text-white py-2 px-6 rounded text-lg font-semibold shadow hover:opacity-90 transition"
+            >
+              Sign in with Puter
+            </button>
+          </div>
         </>
       );
     }
@@ -90,10 +96,8 @@ const Index = () => {
         ? e.message + "\n" + (e.stack || "")
         : String(e);
     setErr(msg);
-    // Show fallback
     return <ErrorBoundary error={msg} />;
   }
 };
 
 export default Index;
-
