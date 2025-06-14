@@ -1,5 +1,5 @@
 
-import { usePuterAuth, PuterAuthProvider } from "@/contexts/PuterAuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 
 const SimpleHeader = () => (
@@ -26,7 +26,7 @@ const SimpleHeader = () => (
 );
 
 const DashboardLayout = () => {
-  const { user, isLoading, signIn, signOut } = usePuterAuth();
+  const { user, isLoading, login, logout } = useAuth();
 
   if (isLoading) {
     return (
@@ -43,34 +43,33 @@ const DashboardLayout = () => {
         <div className="flex flex-col items-center justify-center h-[80vh]">
           <h2 className="text-2xl mb-4 font-semibold">Sign in to start</h2>
           <button
-            onClick={signIn}
+            onClick={login}
             className="px-6 py-3 text-lg rounded bg-cloud-blue text-white font-bold hover:bg-blue-700 transition-colors"
           >
-            Sign in with Puter
+            Sign in with Google
           </button>
         </div>
       </div>
     );
   }
 
-  // Placeholder for the main dashboard (files/folders feature to be added next)
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       <SimpleHeader />
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex justify-between items-center p-4 border-b bg-white">
           <div>
-            <span className="font-medium">Hi, {user.fullName || user.email}</span>
+            <span className="font-medium">Hi, {user.user_metadata?.full_name || user.email}</span>
           </div>
           <button
-            onClick={signOut}
+            onClick={logout}
             className="bg-red-100 text-red-700 rounded px-3 py-1 text-xs font-semibold hover:bg-red-200"
           >
             Sign Out
           </button>
         </div>
         <main className="flex-1 p-6 flex flex-col items-center justify-center text-gray-600">
-          <h2 className="text-2xl font-bold mb-2">Welcome to your Puter Cloud Vault!</h2>
+          <h2 className="text-2xl font-bold mb-2">Welcome to your Cloud Vault!</h2>
           <p className="mb-6">File drive and categories UI goes here (coming up next...)</p>
         </main>
       </div>
@@ -80,9 +79,7 @@ const DashboardLayout = () => {
 
 const Index = () => {
   return (
-    <PuterAuthProvider>
-      <DashboardLayout />
-    </PuterAuthProvider>
+    <DashboardLayout />
   );
 };
 
